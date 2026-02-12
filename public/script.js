@@ -98,35 +98,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Swap tokens when swap icon clicked
-    swapIcon.addEventListener('click', async function () {
-        // Swap token texts
-        const tempToken = fromTokenText.innerText;
-        fromTokenText.innerText = toTokenText.innerText;
-        toTokenText.innerText = tempToken;
-
-        // Swap icons
-        const tempIconHtml = fromTokenIcon.innerHTML;
-        const tempIconClass = fromTokenIcon.className;
-        fromTokenIcon.innerHTML = toTokenIcon.innerHTML;
-        fromTokenIcon.className = toTokenIcon.className;
-        toTokenIcon.innerHTML = tempIconHtml;
-        toTokenIcon.className = tempIconClass;
-
-        const fromVal = fromInput.value;
-        const toVal = toInput.value;
-        fromInput.value = toVal;
-        toInput.value = fromVal;
-
-        const fromToken = fromTokenText.innerText;
-        const toToken = toTokenText.innerText;
-
-        if (fromInput.value && parseFloat(fromInput.value) >= 0) {
-            const result = await calculateSwap(fromInput.value, fromToken, toToken);
-            if (result && result.success) {
-                toInput.value = result.toAmount;
-                updateRateDisplay(fromToken, toToken, result.rate);
-            }
-        }
+    // Swap tokens when swap icon clicked
+    swapIcon.addEventListener('click', function () {
+        swapTokens();
     });
 
     function updateRateDisplay(fromToken, toToken, rate) {
@@ -201,24 +175,84 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function selectToken(token) {
+        const fromToken = fromTokenText.innerText;
+        const toToken = toTokenText.innerText;
+
         if (activeSelectionSide === 'from') {
+            // Jika memilih token yang sama dengan 'To', tukar saja
+            if (token.symbol === toToken) {
+                swapTokens();
+                closeModal();
+                return;
+            }
             fromTokenText.innerText = token.symbol;
-            fromTokenIcon.innerText = token.icon;
-            fromTokenIcon.className = `token-icon ${token.class || ''}`;
+            updateTokenUI(fromTokenIcon, token);
         } else {
+            // Jika memilih token yang sama dengan 'From', tukar saja
+            if (token.symbol === fromToken) {
+                swapTokens();
+                closeModal();
+                return;
+            }
             toTokenText.innerText = token.symbol;
-            toTokenIcon.innerText = token.icon;
-            toTokenIcon.className = `token-icon ${token.class || ''}`;
+            updateTokenUI(toTokenIcon, token);
         }
         closeModal();
         triggerCalculate(fromInput.value);
     }
 
+    function updateTokenUI(element, token) {
+        element.innerText = token.icon;
+        element.className = `token-icon ${token.class || ''}`;
+        if (!token.class && token.color) {
+            element.style.background = token.color;
+            element.style.color = 'white';
+        } else {
+            element.style.background = '';
+            element.style.color = '';
+        }
+    }
+
+    function swapTokens() {
+        // Swap token texts
+        const tempToken = fromTokenText.innerText;
+        fromTokenText.innerText = toTokenText.innerText;
+        toTokenText.innerText = tempToken;
+
+        // Swap icons & styles
+        const tempIconHtml = fromTokenIcon.innerHTML;
+        const tempIconClass = fromTokenIcon.className;
+        const tempIconBg = fromTokenIcon.style.background;
+        const tempIconColor = fromTokenIcon.style.color;
+
+        fromTokenIcon.innerHTML = toTokenIcon.innerHTML;
+        fromTokenIcon.className = toTokenIcon.className;
+        fromTokenIcon.style.background = toTokenIcon.style.background;
+        fromTokenIcon.style.color = toTokenIcon.style.color;
+
+        toTokenIcon.innerHTML = tempIconHtml;
+        toTokenIcon.className = tempIconClass;
+        toTokenIcon.style.background = tempIconBg;
+        toTokenIcon.style.color = tempIconColor;
+
+        // Swap amounts
+        const fromVal = fromInput.value;
+        const toVal = toInput.value;
+        fromInput.value = toVal;
+        toInput.value = fromVal;
+
+        triggerCalculate(fromInput.value);
+    }
+
     async function triggerCalculate(amount) {
-        const result = await calculateSwap(amount, fromTokenText.innerText, toTokenText.innerText);
+        const fToken = fromTokenText.innerText;
+        const tToken = toTokenText.innerText;
+        if (!amount || parseFloat(amount) < 0) return;
+
+        const result = await calculateSwap(amount, fToken, tToken);
         if (result && result.success) {
             toInput.value = result.toAmount;
-            updateRateDisplay(fromTokenText.innerText, toTokenText.innerText, result.rate);
+            updateRateDisplay(fToken, tToken, result.rate);
         }
     }
 
@@ -236,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function () {
             signupModal.classList.remove('active');
         } else {
             signupModal.classList.add('active');
-            loginModal.classList.add('active');
             loginModal.classList.remove('active');
         }
     }
@@ -263,11 +296,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Close on overlay click
     [loginModal, signupModal, tokenModal].forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeAuthModal();
-                closeModal();
-            }
-        });
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeAuthModal();
+                    closeModal();
+                }
+            });
+        }
     });
+
+    const tokenSearchInput = document.getElementById('tokenSearchInput');
+    if (tokenSearchInput) {
+        tokenSearchInput.addEventListener('input', (e) => {
+            renderTokens(e.target.value);
+        });
+    }
 });
