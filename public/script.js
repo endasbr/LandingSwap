@@ -59,8 +59,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const toTokenIcon = document.querySelector('#toTokenSelector .token-icon');
     const rateValue = document.getElementById('rateValue');
 
-    let currentRate = 28.64; // BTC to ETH
-
     // Function to fetch swap rate from server
     async function calculateSwap(fromAmount, fromToken, toToken) {
         try {
@@ -114,17 +112,14 @@ document.addEventListener('DOMContentLoaded', function () {
         toTokenIcon.innerHTML = tempIconHtml;
         toTokenIcon.className = tempIconClass;
 
-        // Swap amounts
         const fromVal = fromInput.value;
         const toVal = toInput.value;
         fromInput.value = toVal;
         toInput.value = fromVal;
 
-        // Update rate display
         const fromToken = fromTokenText.innerText;
         const toToken = toTokenText.innerText;
 
-        // Trigger calculation with new from amount
         if (fromInput.value && parseFloat(fromInput.value) >= 0) {
             const result = await calculateSwap(fromInput.value, fromToken, toToken);
             if (result && result.success) {
@@ -134,17 +129,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Update rate display
     function updateRateDisplay(fromToken, toToken, rate) {
         rateValue.innerText = `1 ${fromToken} ≈ ${rate} ${toToken}`;
     }
 
-    // Swap button click
     swapBtn.addEventListener('click', async function (e) {
         e.preventDefault();
-
         const fromAmt = fromInput.value || '0';
-        const toAmt = toInput.value || '0';
         const fromToken = fromTokenText.innerText;
         const toToken = toTokenText.innerText;
 
@@ -153,58 +144,19 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Check balance if logged in
-        if (state.isLoggedIn && state.balances[fromToken] < parseFloat(fromAmt)) {
-            alert(`❌ Insufficient ${fromToken} balance!`);
-            return;
-        }
-
-        swapBtn.disabled = true;
-        swapBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-
-        // Call API again to get latest rate
         const result = await calculateSwap(fromAmt, fromToken, toToken);
-
-        setTimeout(() => {
-            swapBtn.disabled = false;
-            swapBtn.innerHTML = '<i class="fas fa-arrows-rotate"></i> Swap Now';
-
-            if (result && result.success) {
-                if (state.isLoggedIn) {
-                    // Update balances
-                    state.balances[fromToken] -= parseFloat(fromAmt);
-                    state.balances[toToken] += parseFloat(result.toAmount);
-                    saveState();
-                    updateDashboard();
-                }
-
-                showSuccessModal(result);
-            } else {
-                alert('❌ Swap failed. Please try again.');
-            }
-        }, 1500); // Artificial delay for feel
+        if (result && result.success) {
+            alert(`✅ Swap Successful (Simulated)!\n\n` +
+                `You swapped: ${result.fromAmount} ${result.fromToken}\n` +
+                `You received: ${result.toAmount} ${result.toToken}\n` +
+                `(Demo - No real transaction occurred)`);
+        } else {
+            alert('❌ Swap failed. Please try again.');
+        }
     });
 
-    // Initial calculation
-    setTimeout(async () => {
-        if (fromInput.value) {
-            const result = await calculateSwap(fromInput.value, 'BTC', 'ETH');
-            if (result && result.success) {
-                toInput.value = result.toAmount;
-            }
-        }
-    }, 100);
-
-    // ---------- NEW: TOKEN MODAL LOGIC ----------
+    // ---------- TOKEN MODAL ----------
     const tokenModal = document.getElementById('tokenModal');
-    const closeTokenModal = document.getElementById('closeTokenModal');
-    const tokenSearchInput = document.getElementById('tokenSearchInput');
-    const tokenList = document.getElementById('tokenList');
-    const fromTokenSelector = document.getElementById('fromTokenSelector');
-    const toTokenSelector = document.getElementById('toTokenSelector');
-
-    let activeSelectionSide = 'from'; // 'from' or 'to'
-
     const tokens = [
         { symbol: 'BTC', name: 'Bitcoin', icon: '₿', class: 'btc-icon', color: '#f7931a' },
         { symbol: 'ETH', name: 'Ethereum', icon: 'Ξ', class: 'eth-icon', color: '#627eea' },
@@ -216,129 +168,90 @@ document.addEventListener('DOMContentLoaded', function () {
         { symbol: 'DOT', name: 'Polkadot', icon: 'P', class: 'dot-icon', color: '#e6007a' }
     ];
 
-    function renderTokens(filter = '') {
-        tokenList.innerHTML = '';
-        const filteredTokens = tokens.filter(t =>
-            t.symbol.toLowerCase().includes(filter.toLowerCase()) ||
-            t.name.toLowerCase().includes(filter.toLowerCase())
-        );
+    let activeSelectionSide = 'from';
 
-        if (filteredTokens.length === 0) {
-            tokenList.innerHTML = '<div class="no-results">No tokens found</div>';
-            return;
-        }
-
-        filteredTokens.forEach(token => {
-            const item = document.createElement('div');
-            item.className = 'token-item';
-
-            // Check if selected
-            const currentFrom = fromTokenText.innerText;
-            const currentTo = toTokenText.innerText;
-            if ((activeSelectionSide === 'from' && token.symbol === currentFrom) ||
-                (activeSelectionSide === 'to' && token.symbol === currentTo)) {
-                item.classList.add('selected');
-            }
-
-            item.innerHTML = `
-                <div class="token-item-icon ${token.class || ''}" style="${!token.class ? `background: ${token.color}; color: white;` : ''}">
-                    ${token.icon}
-                </div>
-                <div class="token-item-info">
-                    <span class="token-item-symbol">${token.symbol}</span>
-                    <span class="token-item-name">${token.name}</span>
-                </div>
-            `;
-
-            item.addEventListener('click', () => {
-                selectToken(token);
-            });
-
-            tokenList.appendChild(item);
-        });
-    }
-
-    function selectToken(token) {
-        if (activeSelectionSide === 'from') {
-            // Prevent same token on both sides
-            if (token.symbol === toTokenText.innerText) {
-                // Swap if trying to select the same
-                toTokenText.innerText = fromTokenText.innerText;
-                const tempIconHtml = toTokenIcon.innerHTML;
-                const tempIconClass = toTokenIcon.className;
-                toTokenIcon.innerHTML = fromTokenIcon.innerHTML;
-                toTokenIcon.className = fromTokenIcon.className;
-                fromTokenIcon.innerHTML = tempIconHtml;
-                fromTokenIcon.className = tempIconClass;
-            }
-
-            fromTokenText.innerText = token.symbol;
-            fromTokenIcon.innerText = token.icon;
-            fromTokenIcon.className = `token-icon ${token.class || ''}`;
-            if (!token.class) fromTokenIcon.style.background = token.color;
-            else fromTokenIcon.style.background = '';
-        } else {
-            // Prevent same token on both sides
-            if (token.symbol === fromTokenText.innerText) {
-                fromTokenText.innerText = toTokenText.innerText;
-                const tempIconHtml = fromTokenIcon.innerHTML;
-                const tempIconClass = fromTokenIcon.className;
-                fromTokenIcon.innerHTML = toTokenIcon.innerHTML;
-                fromTokenIcon.className = toTokenIcon.className;
-                toTokenIcon.innerHTML = tempIconHtml;
-                toTokenIcon.className = tempIconClass;
-            }
-
-            toTokenText.innerText = token.symbol;
-            toTokenIcon.innerText = token.icon;
-            toTokenIcon.className = `token-icon ${token.class || ''}`;
-            if (!token.class) toTokenIcon.style.background = token.color;
-            else toTokenIcon.style.background = '';
-        }
-
-        closeModal();
-        // Trigger calculation
-        const fromAmt = fromInput.value || '0';
-        triggerCalculate(fromAmt);
-
-        // Update Chart
-        updateChart(token.symbol);
-    }
-
-    async function triggerCalculate(amount) {
-        const fromToken = fromTokenText.innerText;
-        const toToken = toTokenText.innerText;
-        const result = await calculateSwap(amount, fromToken, toToken);
-        if (result && result.success) {
-            toInput.value = result.toAmount;
-            updateRateDisplay(fromToken, toToken, result.rate);
-        }
-    }
-
-    function openModal(side) {
+    function openTokenModal(side) {
         activeSelectionSide = side;
         tokenModal.classList.add('active');
-        tokenSearchInput.value = '';
         renderTokens();
-        setTimeout(() => tokenSearchInput.focus(), 100);
     }
 
     function closeModal() {
         tokenModal.classList.remove('active');
     }
 
-    // Event Listeners
-    fromTokenSelector.addEventListener('click', () => openModal('from'));
-    toTokenSelector.addEventListener('click', () => openModal('to'));
-    closeTokenModal.addEventListener('click', closeModal);
+    function renderTokens(filter = '') {
+        const tokenList = document.getElementById('tokenList');
+        tokenList.innerHTML = '';
+        const filtered = tokens.filter(t => t.symbol.toLowerCase().includes(filter.toLowerCase()));
 
-    tokenModal.addEventListener('click', (e) => {
-        if (e.target === tokenModal) closeModal();
-    });
+        filtered.forEach(token => {
+            const item = document.createElement('div');
+            item.className = 'token-item';
+            item.innerHTML = `
+                <div class="token-item-icon ${token.class || ''}" style="${!token.class ? `background: ${token.color};` : ''}">${token.icon}</div>
+                <div class="token-item-info">
+                    <span class="token-item-symbol">${token.symbol}</span>
+                    <span class="token-item-name">${token.name}</span>
+                </div>
+            `;
+            item.addEventListener('click', () => selectToken(token));
+            tokenList.appendChild(item);
+        });
+    }
 
-    tokenSearchInput.addEventListener('input', (e) => {
-        renderTokens(e.target.value);
-    });
+    function selectToken(token) {
+        if (activeSelectionSide === 'from') {
+            fromTokenText.innerText = token.symbol;
+            fromTokenIcon.innerText = token.icon;
+            fromTokenIcon.className = `token-icon ${token.class || ''}`;
+        } else {
+            toTokenText.innerText = token.symbol;
+            toTokenIcon.innerText = token.icon;
+            toTokenIcon.className = `token-icon ${token.class || ''}`;
+        }
+        closeModal();
+        triggerCalculate(fromInput.value);
+    }
+
+    async function triggerCalculate(amount) {
+        const result = await calculateSwap(amount, fromTokenText.innerText, toTokenText.innerText);
+        if (result && result.success) {
+            toInput.value = result.toAmount;
+            updateRateDisplay(fromTokenText.innerText, toTokenText.innerText, result.rate);
+        }
+    }
+
+    document.getElementById('fromTokenSelector').addEventListener('click', () => openTokenModal('from'));
+    document.getElementById('toTokenSelector').addEventListener('click', () => openTokenModal('to'));
+    document.getElementById('closeTokenModal').addEventListener('click', closeModal);
+
+    // ---------- AUTH MODALS ----------
+    const loginModal = document.getElementById('loginModal');
+    const signupModal = document.getElementById('signupModal');
+
+    window.openAuthModal = function (type) {
+        if (type === 'login') {
+            loginModal.classList.add('active');
+            signupModal.classList.remove('active');
+        } else {
+            signupModal.classList.add('active');
+            loginModal.classList.add('active');
+            loginModal.classList.remove('active');
+        }
+    }
+
+    window.closeAuthModal = function () {
+        loginModal.classList.remove('active');
+        signupModal.classList.remove('active');
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', () => openAuthModal('login'));
+    document.getElementById('signupBtn').addEventListener('click', () => openAuthModal('signup'));
+    document.getElementById('closeLoginModal').addEventListener('click', closeAuthModal);
+    document.getElementById('closeSignupModal').addEventListener('click', closeAuthModal);
+    document.getElementById('toSignup').addEventListener('click', (e) => { e.preventDefault(); openAuthModal('signup'); });
+    document.getElementById('toLogin').addEventListener('click', (e) => { e.preventDefault(); openAuthModal('login'); });
 
     // Close on ESC
     document.addEventListener('keydown', (e) => {
@@ -348,197 +261,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ---------- NEW: AUTH MODAL LOGIC ----------
-    const loginModal = document.getElementById('loginModal');
-    const signupModal = document.getElementById('signupModal');
-
-    const loginBtns = [document.getElementById('loginBtn'), document.getElementById('mobileLoginBtn')];
-    const signupBtns = [document.getElementById('signupBtn'), document.getElementById('mobileSignupBtn')];
-
-    const closeLoginBtn = document.getElementById('closeLoginModal');
-    const closeSignupBtn = document.getElementById('closeSignupModal');
-
-    const toSignup = document.getElementById('toSignup');
-    const toLogin = document.getElementById('toLogin');
-
-    function openAuthModal(type) {
-        // Close mobile menu if open
-        if (typeof closeMenu === 'function') closeMenu();
-
-        if (type === 'login') {
-            signupModal.classList.remove('active');
-            loginModal.classList.add('active');
-        } else {
-            loginModal.classList.remove('active');
-            signupModal.classList.add('active');
-        }
-    }
-
-    function closeAuthModal() {
-        loginModal.classList.remove('active');
-        signupModal.classList.remove('active');
-    }
-
-    loginBtns.forEach(btn => {
-        if (btn) btn.addEventListener('click', () => openAuthModal('login'));
-    });
-
-    signupBtns.forEach(btn => {
-        if (btn) btn.addEventListener('click', () => openAuthModal('signup'));
-    });
-
-    if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeAuthModal);
-    if (closeSignupBtn) closeSignupBtn.addEventListener('click', closeAuthModal);
-
-    if (toSignup) toSignup.addEventListener('click', (e) => {
-        e.preventDefault();
-        openAuthModal('signup');
-    });
-
-    if (toLogin) toLogin.addEventListener('click', (e) => {
-        e.preventDefault();
-        openAuthModal('login');
-    });
-
     // Close on overlay click
-    [loginModal, signupModal, document.getElementById('successModal')].forEach(modal => {
-        if (modal) modal.addEventListener('click', (e) => {
+    [loginModal, signupModal, tokenModal].forEach(modal => {
+        modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 closeAuthModal();
-                const sModal = document.getElementById('successModal');
-                if (sModal) sModal.classList.remove('active');
+                closeModal();
             }
         });
     });
-
-    // ---------- WEALTH & CHART LOGIC ----------
-    let state = {
-        isLoggedIn: localStorage.getItem('isLoggedIn') === 'true',
-        balances: JSON.parse(localStorage.getItem('balances')) || {
-            'BTC': 1.254,
-            'ETH': 15.8,
-            'BNB': 45.0,
-            'USDT': 12500.0,
-            'SOL': 120.0,
-            'ADA': 5000.0,
-            'XRP': 10000.0,
-            'DOT': 850.0
-        }
-    };
-
-    function saveState() {
-        localStorage.setItem('isLoggedIn', state.isLoggedIn);
-        localStorage.setItem('balances', JSON.stringify(state.balances));
-    }
-
-    function updateDashboard() {
-        const dashboard = document.getElementById('wealthDashboard');
-        const guestNav = document.getElementById('guestNav');
-        const userNav = document.getElementById('userNav');
-        const balanceScroll = document.getElementById('balanceScroll');
-
-        if (state.isLoggedIn) {
-            dashboard.style.display = 'flex';
-            guestNav.style.display = 'none';
-            userNav.style.display = 'flex';
-
-            balanceScroll.innerHTML = '';
-            let totalUsd = 0;
-
-            const mockPrices = { 'BTC': 64000, 'ETH': 3500, 'BNB': 600, 'USDT': 1, 'SOL': 150, 'ADA': 0.45, 'XRP': 0.6, 'DOT': 7 };
-
-            Object.entries(state.balances).forEach(([symbol, amount]) => {
-                const usdValue = amount * (mockPrices[symbol] || 0);
-                totalUsd += usdValue;
-
-                const item = document.createElement('div');
-                item.className = 'balance-item';
-                item.innerHTML = `
-                    <span class="bal-label">${symbol}</span>
-                    <span class="bal-value">${amount.toFixed(4)}</span>
-                `;
-                balanceScroll.appendChild(item);
-            });
-
-            document.getElementById('totalValue').innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalUsd);
-        } else {
-            dashboard.style.display = 'none';
-            guestNav.style.display = 'flex';
-            userNav.style.display = 'none';
-        }
-    }
-
-    // Chart Integration
-    function updateChart(symbol) {
-        if (typeof TradingView === 'undefined') return;
-
-        const tvSymbols = {
-            'BTC': 'BINANCE:BTCUSDT',
-            'ETH': 'BINANCE:ETHUSDT',
-            'BNB': 'BINANCE:BNBUSDT',
-            'USDT': 'BINANCE:USDTUSD',
-            'SOL': 'BINANCE:SOLUSDT',
-            'ADA': 'BINANCE:ADAUSDT',
-            'XRP': 'BINANCE:XRPUSDT',
-            'DOT': 'BINANCE:DOTUSDT'
-        };
-
-        const targetSymbol = tvSymbols[symbol] || `BINANCE:${symbol}USDT`;
-
-        new TradingView.widget({
-            "autosize": true,
-            "symbol": targetSymbol,
-            "interval": "A",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "en",
-            "toolbar_bg": "#f1f3f6",
-            "enable_publishing": false,
-            "hide_side_toolbar": false,
-            "allow_symbol_change": true,
-            "container_id": "tradingview_widget"
-        });
-    }
-
-    function showSuccessModal(result) {
-        const modal = document.getElementById('successModal');
-        document.getElementById('receiptSent').innerText = `${result.fromAmount} ${result.fromToken}`;
-        document.getElementById('receiptReceived').innerText = `${result.toAmount} ${result.toToken}`;
-        modal.classList.add('active');
-    }
-
-    // Auth Listeners Update - simulating successful login
-    document.querySelectorAll('.btn-auth-submit').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            state.isLoggedIn = true;
-            saveState();
-            updateDashboard();
-            closeAuthModal();
-        });
-    });
-
-    document.getElementById('logoutBtn').addEventListener('click', (e) => {
-        e.preventDefault();
-        state.isLoggedIn = false;
-        saveState();
-        updateDashboard();
-    });
-
-    if (document.getElementById('closeSuccessBtn')) {
-        document.getElementById('closeSuccessBtn').addEventListener('click', () => {
-            document.getElementById('successModal').classList.remove('active');
-        });
-    }
-
-    if (document.getElementById('closeSuccessModal')) {
-        document.getElementById('closeSuccessModal').addEventListener('click', () => {
-            document.getElementById('successModal').classList.remove('active');
-        });
-    }
-
-    // Initialize
-    updateDashboard();
-    setTimeout(() => updateChart('BTC'), 500);
 });

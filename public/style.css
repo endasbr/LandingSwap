@@ -733,6 +733,7 @@ footer {
     background: linear-gradient(135deg, #fcd535, #f0b90b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .auth-header p {
@@ -837,113 +838,7 @@ footer {
     color: white;
 }
 
-/* DASHBOARD BAR */
-.dashboard-bar {
-    background: #1e2329;
-    border: 1px solid #2b3139;
-    border-radius: 16px;
-    padding: 16px 24px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 40px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    /* Firefox */
-}
 
-.dashboard-bar::-webkit-scrollbar {
-    display: none;
-    /* Safari and Chrome */
-}
-
-.balance-item {
-    display: flex;
-    flex-direction: column;
-    min-width: fit-content;
-}
-
-.bal-label {
-    font-size: 12px;
-    color: #848e9c;
-    margin-bottom: 4px;
-}
-
-.bal-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: #fcd535;
-}
-
-.balance-list {
-    display: flex;
-    gap: 24px;
-    border-left: 1px solid #2b3139;
-    padding-left: 24px;
-}
-
-.nav-right.active-user {
-    gap: 12px;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #2b3139;
-    padding: 6px 14px;
-    border-radius: 20px;
-}
-
-.user-avatar {
-    width: 28px;
-    height: 28px;
-    background: #fcd535;
-    color: #0b0e11;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 14px;
-}
-
-.user-name {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.btn-logout {
-    background: none;
-    border: 1px solid #474d57;
-    color: #848e9c;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-logout:hover {
-    color: #f84960;
-    border-color: #f84960;
-}
-
-/* CHART STYLES */
-.chart-container {
-    margin-top: 32px;
-    background: #1e2329;
-    border: 1px solid #2b3139;
-    border-radius: 20px;
-    overflow: hidden;
-    height: 400px;
-    width: 100%;
-}
-
-#tradingview_widget {
-    height: 100%;
-    width: 100%;
-}
 
 .token-modal-overlay.active {
     opacity: 1;
