@@ -38,8 +38,12 @@
                 <a href="#">More</a>
             </div>
             <div class="nav-right">
-                <button class="btn-outline" id="loginBtn"><i class="fas fa-user"></i> Log In</button>
-                <button class="btn-yellow" id="signupBtn">Sign Up</button>
+                <button class="btn-outline-yellow" id="connectWalletBtn"><i class="fas fa-wallet"></i> Connect
+                    Wallet</button>
+                <div class="user-auth-grp" id="authGrp">
+                    <button class="btn-outline" id="loginBtn">Log In</button>
+                    <button class="btn-yellow" id="signupBtn">Sign Up</button>
+                </div>
             </div>
 
             <!-- BURGER WRAPPER (mobile only) -->
@@ -61,7 +65,9 @@
             <a href="#"><i class="fas fa-ellipsis-h"></i> More</a>
 
             <div class="mobile-menu-buttons">
-                <button class="btn-outline" id="mobileLoginBtn"><i class="fas fa-user"></i> Log In</button>
+                <button class="btn-outline-yellow" id="mobileConnectBtn" style="width: 100%; margin-bottom: 12px;"><i
+                        class="fas fa-wallet"></i> Connect Wallet</button>
+                <button class="btn-outline" id="mobileLoginBtn">Log In</button>
                 <button class="btn-yellow" id="mobileSignupBtn">Sign Up</button>
             </div>
             <div class="mobile-language">
@@ -303,6 +309,41 @@
 
             <div class="token-list" id="tokenList">
                 <!-- Tokens will be rendered here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- WALLET MODAL -->
+    <div class="auth-modal-overlay" id="walletModal">
+        <div class="auth-modal">
+            <button class="close-auth" id="closeWalletModal">&times;</button>
+            <div class="auth-header">
+                <h2>Connect Wallet</h2>
+                <p>Choose your preferred wallet to connect</p>
+            </div>
+            <div class="wallet-options">
+                <div class="wallet-item" id="metaMaskBtn">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask">
+                    <span>MetaMask</span>
+                    <span class="badge">Popular</span>
+                </div>
+                <div class="wallet-item" id="trustWalletBtn">
+                    <img src="https://trustwallet.com/assets/images/media/assets/trust_primary_logo_stacked.png"
+                        alt="Trust Wallet">
+                    <span>Trust Wallet</span>
+                </div>
+                <div class="wallet-item" id="coinbaseBtn">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c2/Coinbase_Logo_2013.svg"
+                        alt="Coinbase">
+                    <span>Coinbase Wallet</span>
+                </div>
+                <div class="wallet-item">
+                    <img src="https://walletconnect.com/images/walletconnect-logo.svg" alt="WalletConnect">
+                    <span>WalletConnect</span>
+                </div>
+            </div>
+            <div class="auth-footer">
+                By connecting, you agree to our <a href="#">Terms of Service</a>
             </div>
         </div>
     </div>

@@ -90,6 +90,33 @@ body {
     align-items: center;
 }
 
+.user-auth-grp {
+    display: flex;
+    gap: 12px;
+    border-left: 1px solid #2b3139;
+    padding-left: 16px;
+}
+
+.btn-outline-yellow {
+    background: transparent;
+    color: #fcd535;
+    border: 1px solid #fcd535;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-outline-yellow:hover {
+    background: rgba(252, 213, 53, 0.1);
+    box-shadow: 0 0 15px rgba(252, 213, 53, 0.2);
+}
+
 /* Burger wrapper - hidden on desktop */
 .burger-wrapper {
     display: none;
@@ -1010,4 +1037,63 @@ footer {
     text-align: center;
     padding: 40px 20px;
     color: #848e9c;
+}
+
+/* WALLET MODAL STYLES */
+.wallet-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.wallet-item {
+    background: #0b0e11;
+    border: 1px solid #2b3139;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.wallet-item:hover {
+    border-color: #fcd535;
+    background: #1e2329;
+}
+
+.wallet-item img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.wallet-item span {
+    font-weight: 600;
+    color: white;
+}
+
+.wallet-item .badge {
+    position: absolute;
+    right: 16px;
+    background: rgba(252, 213, 53, 0.2);
+    color: #fcd535;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+    .user-auth-grp {
+        display: none;
+    }
+
+    .btn-outline-yellow {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
 }

@@ -294,13 +294,114 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // ---------- WALLET CONNECTION LOGIC ----------
+    const walletModal = document.getElementById('walletModal');
+    const connectBtn = document.getElementById('connectWalletBtn');
+    const mobileConnectBtn = document.getElementById('mobileConnectBtn');
+    const closeWalletBtn = document.getElementById('closeWalletModal');
+    const metaMaskBtn = document.getElementById('metaMaskBtn');
+    const trustWalletBtn = document.getElementById('trustWalletBtn');
+    const coinbaseBtn = document.getElementById('coinbaseBtn');
+
+    let walletState = {
+        connected: localStorage.getItem('walletConnected') === 'true',
+        address: localStorage.getItem('walletAddress') || ''
+    };
+
+    function updateWalletUI() {
+        if (walletState.connected) {
+            const shortAddr = walletState.address.substring(0, 6) + '...' + walletState.address.substring(walletState.address.length - 4);
+            const html = `<i class="fas fa-check-circle"></i> ${shortAddr}`;
+            connectBtn.innerHTML = html;
+            connectBtn.classList.add('connected');
+            if (mobileConnectBtn) {
+                mobileConnectBtn.innerHTML = html;
+                mobileConnectBtn.classList.add('connected');
+            }
+        } else {
+            const html = `<i class="fas fa-wallet"></i> Connect Wallet`;
+            connectBtn.innerHTML = html;
+            connectBtn.classList.remove('connected');
+            if (mobileConnectBtn) {
+                mobileConnectBtn.innerHTML = html;
+                mobileConnectBtn.classList.remove('connected');
+            }
+        }
+    }
+
+    async function connectMetaMask() {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                walletState.connected = true;
+                walletState.address = accounts[0];
+                saveWalletState();
+                updateWalletUI();
+                closeWalletModal();
+                alert('✅ MetaMask Connected!');
+            } catch (err) {
+                console.error(err);
+                alert('❌ Connection failed');
+            }
+        } else {
+            alert('🦊 Please install MetaMask!');
+            window.open('https://metamask.io/download/', '_blank');
+        }
+    }
+
+    function simulateConnection(name) {
+        walletState.connected = true;
+        walletState.address = '0x' + Math.random().toString(16).slice(2, 42); // Random mock address
+        saveWalletState();
+        updateWalletUI();
+        closeWalletModal();
+        alert(`✅ Connected to ${name} (Simulation)`);
+    }
+
+    function saveWalletState() {
+        localStorage.setItem('walletConnected', walletState.connected);
+        localStorage.setItem('walletAddress', walletState.address);
+    }
+
+    function closeWalletModal() {
+        walletModal.classList.remove('active');
+    }
+
+    function handleConnectClick() {
+        if (walletState.connected) {
+            if (confirm('Do you want to disconnect?')) {
+                walletState.connected = false;
+                walletState.address = '';
+                saveWalletState();
+                updateWalletUI();
+            }
+        } else {
+            walletModal.classList.add('active');
+        }
+    }
+
+    connectBtn.addEventListener('click', handleConnectClick);
+    if (mobileConnectBtn) {
+        mobileConnectBtn.addEventListener('click', handleConnectClick);
+    }
+
+    closeWalletBtn.addEventListener('click', closeWalletModal);
+
+    metaMaskBtn.addEventListener('click', connectMetaMask);
+    trustWalletBtn.addEventListener('click', () => simulateConnection('Trust Wallet'));
+    coinbaseBtn.addEventListener('click', () => simulateConnection('Coinbase Wallet'));
+
+    // Init Wallet UI
+    updateWalletUI();
+
     // Close on overlay click
-    [loginModal, signupModal, tokenModal].forEach(modal => {
+    [loginModal, signupModal, tokenModal, walletModal].forEach(modal => {
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     closeAuthModal();
                     closeModal();
+                    closeWalletModal();
                 }
             });
         }
