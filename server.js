@@ -2,8 +2,22 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 
+const axios = require('axios');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Mapping simbol token ke ID CoinGecko
+const COINGECKO_IDS = {
+    'BTC': 'bitcoin',
+    'ETH': 'ethereum',
+    'BNB': 'binancecoin',
+    'USDT': 'tether',
+    'SOL': 'solana',
+    'ADA': 'cardano',
+    'XRP': 'ripple',
+    'DOT': 'polkadot'
+};
 
 // Set EJS sebagai view engine
 app.set('view engine', 'ejs');
@@ -18,46 +32,57 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
     res.render('index', {
         title: 'Binance Swap - Crypto Landing Page',
-        rate: 28.64
+        rate: '...' // Akan diupdate oleh JS di client
     });
 });
 
-// API endpoint untuk simulasi swap
-app.post('/api/swap', (req, res) => {
+// API endpoint untuk swap dengan harga REAL-TIME
+app.post('/api/swap', async (req, res) => {
     const { fromAmount, fromToken, toToken } = req.body;
 
-    // Mock rates (relative to USD)
-    const baseRates = {
-        'BTC': 62000,
-        'ETH': 3200,
-        'BNB': 580,
-        'USDT': 1,
-        'SOL': 145,
-        'ADA': 0.45,
-        'XRP': 0.62,
-        'DOT': 7.5
-    };
+    try {
+        const fromId = COINGECKO_IDS[fromToken];
+        const toId = COINGECKO_IDS[toToken];
 
-    const fromPrice = baseRates[fromToken] || 1;
-    const toPrice = baseRates[toToken] || 1;
+        if (!fromId || !toId) {
+            return res.status(400).json({ success: false, message: 'Token not supported' });
+        }
 
-    // Calculate rate: how many toToken for 1 fromToken
-    const rate = fromPrice / toPrice;
+        // Fetch harga dari CoinGecko (Free API)
+        const response = await axios.get(`https://api.coingecko.com/api/v3/simple/price`, {
+            params: {
+                ids: `${fromId},${toId}`,
+                vs_currencies: 'usd'
+            }
+        });
 
-    // Add a bit of "market" volatility simulation
-    const volatility = 1 + (Math.random() * 0.002 - 0.001); // +/- 0.1%
-    const finalRate = rate * volatility;
+        const fromPrice = response.data[fromId].usd;
+        const toPrice = response.data[toId].usd;
 
-    const toAmount = parseFloat(fromAmount) * finalRate;
+        // Hitung rate
+        const rate = fromPrice / toPrice;
+        const toAmount = parseFloat(fromAmount) * rate;
 
-    res.json({
-        success: true,
-        fromAmount,
-        fromToken,
-        toAmount: toAmount.toFixed(6),
-        toToken,
-        rate: finalRate.toFixed(6)
-    });
+        res.json({
+            success: true,
+            fromAmount,
+            fromToken,
+            toAmount: toAmount.toFixed(6),
+            toToken,
+            rate: rate.toFixed(8),
+            realTime: true
+        });
+
+    } catch (error) {
+        console.error('CoinGecko API Error:', error.message);
+
+        // Fallback jika API limit atau error
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch real-time price',
+            error: error.message
+        });
+    }
 });
 
 app.listen(PORT, () => {
