@@ -153,18 +153,36 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Check balance if logged in
+        if (state.isLoggedIn && state.balances[fromToken] < parseFloat(fromAmt)) {
+            alert(`❌ Insufficient ${fromToken} balance!`);
+            return;
+        }
+
+        swapBtn.disabled = true;
+        swapBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
         // Call API again to get latest rate
         const result = await calculateSwap(fromAmt, fromToken, toToken);
 
-        if (result && result.success) {
-            alert(`✅ Swap Successful (Simulated)!\n\n` +
-                `You swapped: ${result.fromAmount} ${result.fromToken}\n` +
-                `You received: ${result.toAmount} ${result.toToken}\n` +
-                `Rate: 1 ${result.fromToken} ≈ ${result.rate} ${result.toToken}\n\n` +
-                `(Demo - No real transaction occurred)`);
-        } else {
-            alert('❌ Swap failed. Please try again.');
-        }
+        setTimeout(() => {
+            swapBtn.disabled = false;
+            swapBtn.innerHTML = '<i class="fas fa-arrows-rotate"></i> Swap Now';
+
+            if (result && result.success) {
+                if (state.isLoggedIn) {
+                    // Update balances
+                    state.balances[fromToken] -= parseFloat(fromAmt);
+                    state.balances[toToken] += parseFloat(result.toAmount);
+                    saveState();
+                    updateDashboard();
+                }
+
+                showSuccessModal(result);
+            } else {
+                alert('❌ Swap failed. Please try again.');
+            }
+        }, 1500); // Artificial delay for feel
     });
 
     // Initial calculation
@@ -282,6 +300,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Trigger calculation
         const fromAmt = fromInput.value || '0';
         triggerCalculate(fromAmt);
+
+        // Update Chart
+        updateChart(token.symbol);
     }
 
     async function triggerCalculate(amount) {
@@ -355,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function closeAuthModal() {
         loginModal.classList.remove('active');
-        signupModal.classList.remove('active'); // Fixed: Should remove active from both
+        signupModal.classList.remove('active');
     }
 
     loginBtns.forEach(btn => {
@@ -380,9 +401,144 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Close on overlay click
-    [loginModal, signupModal].forEach(modal => {
+    [loginModal, signupModal, document.getElementById('successModal')].forEach(modal => {
         if (modal) modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeAuthModal();
+            if (e.target === modal) {
+                closeAuthModal();
+                const sModal = document.getElementById('successModal');
+                if (sModal) sModal.classList.remove('active');
+            }
         });
     });
+
+    // ---------- WEALTH & CHART LOGIC ----------
+    let state = {
+        isLoggedIn: localStorage.getItem('isLoggedIn') === 'true',
+        balances: JSON.parse(localStorage.getItem('balances')) || {
+            'BTC': 1.254,
+            'ETH': 15.8,
+            'BNB': 45.0,
+            'USDT': 12500.0,
+            'SOL': 120.0,
+            'ADA': 5000.0,
+            'XRP': 10000.0,
+            'DOT': 850.0
+        }
+    };
+
+    function saveState() {
+        localStorage.setItem('isLoggedIn', state.isLoggedIn);
+        localStorage.setItem('balances', JSON.stringify(state.balances));
+    }
+
+    function updateDashboard() {
+        const dashboard = document.getElementById('wealthDashboard');
+        const guestNav = document.getElementById('guestNav');
+        const userNav = document.getElementById('userNav');
+        const balanceScroll = document.getElementById('balanceScroll');
+
+        if (state.isLoggedIn) {
+            dashboard.style.display = 'flex';
+            guestNav.style.display = 'none';
+            userNav.style.display = 'flex';
+
+            balanceScroll.innerHTML = '';
+            let totalUsd = 0;
+
+            const mockPrices = { 'BTC': 64000, 'ETH': 3500, 'BNB': 600, 'USDT': 1, 'SOL': 150, 'ADA': 0.45, 'XRP': 0.6, 'DOT': 7 };
+
+            Object.entries(state.balances).forEach(([symbol, amount]) => {
+                const usdValue = amount * (mockPrices[symbol] || 0);
+                totalUsd += usdValue;
+
+                const item = document.createElement('div');
+                item.className = 'balance-item';
+                item.innerHTML = `
+                    <span class="bal-label">${symbol}</span>
+                    <span class="bal-value">${amount.toFixed(4)}</span>
+                `;
+                balanceScroll.appendChild(item);
+            });
+
+            document.getElementById('totalValue').innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalUsd);
+        } else {
+            dashboard.style.display = 'none';
+            guestNav.style.display = 'flex';
+            userNav.style.display = 'none';
+        }
+    }
+
+    // Chart Integration
+    function updateChart(symbol) {
+        if (typeof TradingView === 'undefined') return;
+
+        const tvSymbols = {
+            'BTC': 'BINANCE:BTCUSDT',
+            'ETH': 'BINANCE:ETHUSDT',
+            'BNB': 'BINANCE:BNBUSDT',
+            'USDT': 'BINANCE:USDTUSD',
+            'SOL': 'BINANCE:SOLUSDT',
+            'ADA': 'BINANCE:ADAUSDT',
+            'XRP': 'BINANCE:XRPUSDT',
+            'DOT': 'BINANCE:DOTUSDT'
+        };
+
+        const targetSymbol = tvSymbols[symbol] || `BINANCE:${symbol}USDT`;
+
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": targetSymbol,
+            "interval": "A",
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "hide_side_toolbar": false,
+            "allow_symbol_change": true,
+            "container_id": "tradingview_widget"
+        });
+    }
+
+    function showSuccessModal(result) {
+        const modal = document.getElementById('successModal');
+        document.getElementById('receiptSent').innerText = `${result.fromAmount} ${result.fromToken}`;
+        document.getElementById('receiptReceived').innerText = `${result.toAmount} ${result.toToken}`;
+        modal.classList.add('active');
+    }
+
+    // Auth Listeners Update - simulating successful login
+    document.querySelectorAll('.btn-auth-submit').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            state.isLoggedIn = true;
+            saveState();
+            updateDashboard();
+            closeAuthModal();
+        });
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        state.isLoggedIn = false;
+        saveState();
+        updateDashboard();
+    });
+
+    if (document.getElementById('closeSuccessBtn')) {
+        document.getElementById('closeSuccessBtn').addEventListener('click', () => {
+            document.getElementById('successModal').classList.remove('active');
+        });
+    }
+
+    if (document.getElementById('closeSuccessModal')) {
+        document.getElementById('closeSuccessModal').addEventListener('click', () => {
+            document.getElementById('successModal').classList.remove('active');
+        });
+    }
+
+    // Initialize
+    updateDashboard();
+    setTimeout(() => updateChart('BTC'), 500);
 });

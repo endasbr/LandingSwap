@@ -37,9 +37,16 @@
                 <a href="#">Wallet</a>
                 <a href="#">More</a>
             </div>
-            <div class="nav-right">
+            <div class="nav-right" id="guestNav">
                 <button class="btn-outline" id="loginBtn"><i class="fas fa-user"></i> Log In</button>
                 <button class="btn-yellow" id="signupBtn">Sign Up</button>
+            </div>
+            <div class="nav-right active-user" id="userNav" style="display: none;">
+                <div class="user-info">
+                    <div class="user-avatar">U</div>
+                    <span class="user-name">User Demo</span>
+                </div>
+                <button class="btn-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
             </div>
 
             <!-- BURGER WRAPPER (mobile only) -->
@@ -69,6 +76,17 @@
             </div>
         </div>
 
+        <!-- WEALTH DASHBOARD (Balance Bar) -->
+        <div class="dashboard-bar" id="wealthDashboard" style="display: none;">
+            <div class="balance-item">
+                <span class="bal-label">Total Balance</span>
+                <span class="bal-value" id="totalValue">$0.00</span>
+            </div>
+            <div class="balance-list" id="balanceScroll">
+                <!-- Balance items injected by JS -->
+            </div>
+        </div>
+
         <!-- HERO SECTION + SWAP FORM -->
         <div class="hero">
             <div class="hero-left">
@@ -83,6 +101,11 @@
                         <h3>0.05%</h3>
                         <span>maker fee</span>
                     </div>
+                </div>
+
+                <!-- TRADING VIEW CHART -->
+                <div class="chart-container">
+                    <div id="tradingview_widget"></div>
                 </div>
             </div>
 
@@ -306,6 +329,35 @@
         </div>
     </div>
 
+    <!-- SUCCESS MODAL -->
+    <div class="auth-modal-overlay" id="successModal">
+        <div class="auth-modal success-modal" style="text-align: center;">
+            <button class="close-auth" id="closeSuccessModal">&times;</button>
+            <div class="success-icon" style="font-size: 60px; color: #0ecb81; margin-bottom: 20px;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="auth-header">
+                <h2>Swap Successful!</h2>
+                <p id="successMessage" style="color: #848e9c;">You have successfully swapped tokens.</p>
+            </div>
+            <div class="receipt-card"
+                style="background: #0b0e11; padding: 20px; border-radius: 16px; margin-top: 20px; text-align: left;">
+                <div class="receipt-row" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #848e9c;">Sent</span>
+                    <span id="receiptSent" style="font-weight: 600; color: white;">0 BTC</span>
+                </div>
+                <div class="receipt-row" style="display: flex; justify-content: space-between;">
+                    <span style="color: #848e9c;">Received</span>
+                    <span id="receiptReceived" style="font-weight: 600; color: #fcd535;">0 ETH</span>
+                </div>
+            </div>
+            <button class="btn-yellow" id="closeSuccessBtn"
+                style="width: 100%; margin-top: 24px; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer;">Great!</button>
+        </div>
+    </div>
+
+    <!-- TradingView Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <!-- Custom JS -->
     <script src="/script.js"></script>
 </body>
