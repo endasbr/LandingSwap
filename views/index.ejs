@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>
+        <%= title %>
+    </title>
+
+    <!-- Google Font & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <!-- Overlay untuk menu mobile -->
+    <div class="overlay" id="overlay"></div>
+
+    <div class="container">
+        <!-- Navbar dengan Burger Menu -->
+        <div class="navbar">
+            <div class="logo-area">
+                <div class="logo-icon">L</div>
+                <span class="binance-logo">Landing</span>
+                <span class="swap-badge">SWAP</span>
+            </div>
+
+            <!-- DESKTOP NAVIGATION -->
+            <div class="nav-links">
+                <a href="#">Exchange</a>
+                <a href="#">Markets</a>
+                <a href="#">Earn</a>
+                <a href="#">Wallet</a>
+                <a href="#">More</a>
+            </div>
+            <div class="nav-right">
+                <button class="btn-outline"><i class="fas fa-user"></i> Log In</button>
+                <button class="btn-yellow">Sign Up</button>
+            </div>
+
+            <!-- BURGER WRAPPER (mobile only) -->
+            <div class="burger-wrapper">
+                <div class="burger-icon" id="burgerIcon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOBILE MENU (sidebar) -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#"><i class="fas fa-exchange-alt"></i> Exchange</a>
+            <a href="#"><i class="fas fa-chart-line"></i> Markets</a>
+            <a href="#"><i class="fas fa-coins"></i> Earn</a>
+            <a href="#"><i class="fas fa-wallet"></i> Wallet</a>
+            <a href="#"><i class="fas fa-ellipsis-h"></i> More</a>
+
+            <div class="mobile-menu-buttons">
+                <button class="btn-outline"><i class="fas fa-user"></i> Log In</button>
+                <button class="btn-yellow">Sign Up</button>
+            </div>
+            <div class="mobile-language">
+                <i class="fas fa-globe"></i> English (US)
+            </div>
+        </div>
+
+        <!-- HERO SECTION + SWAP FORM -->
+        <div class="hero">
+            <div class="hero-left">
+                <h1>Swap crypto.<br>Zero hassle. Zero extra fees.</h1>
+                <p>Trade any token instantly with Binance Swap. Best rates and deep liquidity, powered by Binance.</p>
+                <div class="stats">
+                    <div class="stat-item">
+                        <h3>$12.8B</h3>
+                        <span>24h volume</span>
+                    </div>
+                    <div class="stat-item">
+                        <h3>0.05%</h3>
+                        <span>maker fee</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SWAP CARD -->
+            <div class="swap-card">
+                <div class="swap-header">
+                    <h2><i class="fas fa-repeat"></i> Swap</h2>
+                    <i class="fas fa-sliders-h gear-icon"></i>
+                </div>
+
+                <!-- FROM -->
+                <div class="input-group">
+                    <div class="label-row">
+                        <span>From</span>
+                        <span>Balance: 0.5234 BTC</span>
+                    </div>
+                    <div class="field-row">
+                        <input type="number" placeholder="0.0" value="0.05" id="fromAmount" step="any">
+                        <div class="token-selector" id="fromTokenSelector">
+                            <span class="token-icon btc-icon">₿</span>
+                            <span id="fromTokenText">BTC</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Swap divider -->
+                <div class="swap-divider">
+                    <div class="swap-icon-circle" id="swapIcon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                </div>
+
+                <!-- TO -->
+                <div class="input-group">
+                    <div class="label-row">
+                        <span>To</span>
+                        <span>Balance: 12.45 ETH</span>
+                    </div>
+                    <div class="field-row">
+                        <input type="number" placeholder="0.0" value="1.432" id="toAmount" step="any" readonly>
+                        <div class="token-selector" id="toTokenSelector">
+                            <span class="token-icon eth-icon">Ξ</span>
+                            <span id="toTokenText">ETH</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rate info -->
+                <div class="exchange-rate">
+                    <span><i class="fas fa-chart-line"></i> Rate</span>
+                    <span class="rate-value" id="rateValue">1 BTC ≈ <%= rate %> ETH</span>
+                </div>
+
+                <!-- SWAP BUTTON -->
+                <button class="btn-swap" id="swapNowBtn">
+                    <i class="fas fa-arrows-rotate"></i> Swap Now
+                </button>
+                <div class="disclaimer">
+                    *Slippage 0.5% · No additional fees
+                </div>
+            </div>
+        </div>
+
+        <!-- Market highlights -->
+        <div class="market-highlights">
+            <div class="coin-item">
+                <div class="coin-icon bnb-bg">B</div>
+                <div class="coin-info">
+                    <span class="coin-symbol">BNB</span>
+                    <span class="coin-name">Binance Coin</span>
+                </div>
+                <div class="coin-price">$587.2</div>
+                <div class="positive">+2.34%</div>
+            </div>
+            <div class="coin-item">
+                <div class="coin-icon eth-bg">Ξ</div>
+                <div class="coin-info">
+                    <span class="coin-symbol">ETH</span>
+                    <span class="coin-name">Ethereum</span>
+                </div>
+                <div class="coin-price">$3,210</div>
+                <div class="positive">+1.12%</div>
+            </div>
+            <div class="coin-item">
+                <div class="coin-icon btc-bg">₿</div>
+                <div class="coin-info">
+                    <span class="coin-symbol">BTC</span>
+                    <span class="coin-name">Bitcoin</span>
+                </div>
+                <div class="coin-price">$62,180</div>
+                <div class="positive">+0.87%</div>
+            </div>
+        </div>
+
+        <!-- Feature cards -->
+        <div class="features">
+            <div class="feature-item">
+                <i class="fas fa-bolt"></i>
+                <h4>Lightning fast</h4>
+                <p>Executes in seconds with Binance's high-performance matching engine.</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-shield-alt"></i>
+                <h4>Secure & insured</h4>
+                <p>Industry-leading security, SAFU fund, and 24/7 protection.</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-chart-simple"></i>
+                <h4>Best price discovery</h4>
+                <p>Aggregated from 50+ liquidity sources to minimize slippage.</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-wallet"></i>
+                <h4>Non-custodial option</h4>
+                <p>Connect your wallet or use Binance account – full control.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <span>© 2025 Landing Swap. All rights reserved. | Theme demo</span>
+            <span class="social-icons">
+                <i class="fab fa-twitter"></i>
+                <i class="fab fa-telegram"></i>
+                <i class="fab fa-discord"></i>
+                <i class="fab fa-github"></i>
+            </span>
+        </footer>
+    </div>
+
+    <!-- TOKEN SELECTION MODAL -->
+    <div class="token-modal-overlay" id="tokenModal">
+        <div class="token-modal">
+            <div class="token-modal-header">
+                <h3>Select a token</h3>
+                <button class="close-modal" id="closeTokenModal">&times;</button>
+            </div>
+
+            <div class="token-search-container">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="token-search-input" placeholder="Search name or paste address"
+                        id="tokenSearchInput">
+                </div>
+            </div>
+
+            <div class="token-list" id="tokenList">
+                <!-- Tokens will be rendered here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="/script.js"></script>
+</body>
+
+</html>
