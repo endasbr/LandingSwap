@@ -80,18 +80,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Update to amount when from amount changes
-    fromInput.addEventListener('input', async function (e) {
+    // Update to amount when from amount changes (With Simple Debounce to save API)
+    let debounceTimer;
+    fromInput.addEventListener('input', function (e) {
+        clearTimeout(debounceTimer);
         const fromAmount = e.target.value || '0';
         const fromToken = fromTokenText.innerText;
         const toToken = toTokenText.innerText;
 
         if (parseFloat(fromAmount) >= 0) {
-            const result = await calculateSwap(fromAmount, fromToken, toToken);
-            if (result && result.success) {
-                toInput.value = result.toAmount;
-                updateRateDisplay(fromToken, toToken, result.rate);
-            }
+            debounceTimer = setTimeout(async () => {
+                const result = await calculateSwap(fromAmount, fromToken, toToken);
+                if (result && result.success) {
+                    toInput.value = result.toAmount;
+                    updateRateDisplay(fromToken, toToken, result.rate);
+                }
+            }, 400); // 400ms debounce
         }
     });
 
@@ -317,8 +321,68 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Close on ESC
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && tokenModal.classList.contains('active')) {
+        if (e.key === 'Escape') {
             closeModal();
+            closeAuthModal();
         }
+    });
+
+    // ---------- NEW: AUTH MODAL LOGIC ----------
+    const loginModal = document.getElementById('loginModal');
+    const signupModal = document.getElementById('signupModal');
+
+    const loginBtns = [document.getElementById('loginBtn'), document.getElementById('mobileLoginBtn')];
+    const signupBtns = [document.getElementById('signupBtn'), document.getElementById('mobileSignupBtn')];
+
+    const closeLoginBtn = document.getElementById('closeLoginModal');
+    const closeSignupBtn = document.getElementById('closeSignupModal');
+
+    const toSignup = document.getElementById('toSignup');
+    const toLogin = document.getElementById('toLogin');
+
+    function openAuthModal(type) {
+        // Close mobile menu if open
+        if (typeof closeMenu === 'function') closeMenu();
+
+        if (type === 'login') {
+            signupModal.classList.remove('active');
+            loginModal.classList.add('active');
+        } else {
+            loginModal.classList.remove('active');
+            signupModal.classList.add('active');
+        }
+    }
+
+    function closeAuthModal() {
+        loginModal.classList.remove('active');
+        signupModal.classList.remove('active'); // Fixed: Should remove active from both
+    }
+
+    loginBtns.forEach(btn => {
+        if (btn) btn.addEventListener('click', () => openAuthModal('login'));
+    });
+
+    signupBtns.forEach(btn => {
+        if (btn) btn.addEventListener('click', () => openAuthModal('signup'));
+    });
+
+    if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeAuthModal);
+    if (closeSignupBtn) closeSignupBtn.addEventListener('click', closeAuthModal);
+
+    if (toSignup) toSignup.addEventListener('click', (e) => {
+        e.preventDefault();
+        openAuthModal('signup');
+    });
+
+    if (toLogin) toLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        openAuthModal('login');
+    });
+
+    // Close on overlay click
+    [loginModal, signupModal].forEach(modal => {
+        if (modal) modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeAuthModal();
+        });
     });
 });
