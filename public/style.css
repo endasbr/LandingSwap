@@ -296,6 +296,7 @@ body {
     margin-bottom: 20px;
     background: linear-gradient(145deg, #ffffff, #c0c9d2);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -403,6 +404,7 @@ body {
 
 .field-row input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .token-selector {

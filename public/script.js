@@ -58,6 +58,33 @@ document.addEventListener('DOMContentLoaded', function () {
     const fromTokenIcon = document.querySelector('#fromTokenSelector .token-icon');
     const toTokenIcon = document.querySelector('#toTokenSelector .token-icon');
     const rateValue = document.getElementById('rateValue');
+    const fromBalanceEl = document.getElementById('fromBalance');
+    const toBalanceEl = document.getElementById('toBalance');
+
+    // Mock User Balances
+    const userBalances = {
+        'BTC': 0.5234,
+        'ETH': 12.45,
+        'BNB': 45.2,
+        'USDT': 1250.00,
+        'SOL': 85.3,
+        'ADA': 5400,
+        'XRP': 12000,
+        'DOT': 450
+    };
+
+    function updateBalanceUI() {
+        if (fromBalanceEl) {
+            const sym = fromTokenText.innerText;
+            const bal = userBalances[sym] || 0;
+            fromBalanceEl.innerText = `Balance: ${bal.toLocaleString()} ${sym}`;
+        }
+        if (toBalanceEl) {
+            const sym = toTokenText.innerText;
+            const bal = userBalances[sym] || 0;
+            toBalanceEl.innerText = `Balance: ${bal.toLocaleString()} ${sym}`;
+        }
+    }
 
     // Function to fetch swap rate from server
     async function calculateSwap(fromAmount, fromToken, toToken) {
@@ -197,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
             toTokenText.innerText = token.symbol;
             updateTokenUI(toTokenIcon, token);
         }
+        updateBalanceUI();
         closeModal();
         triggerCalculate(fromInput.value);
     }
@@ -241,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fromInput.value = toVal;
         toInput.value = fromVal;
 
+        updateBalanceUI();
         triggerCalculate(fromInput.value);
     }
 
@@ -509,4 +538,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     initPriceWebSocket();
+    updateBalanceUI();
 });
