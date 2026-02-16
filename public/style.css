@@ -590,10 +590,16 @@ body {
 
 .coin-price {
     font-weight: 700;
+    transition: color 0.3s ease;
 }
 
 .positive {
     color: #0ecb81;
+    margin-left: 12px;
+}
+
+.negative {
+    color: #cf304a;
     margin-left: 12px;
 }
 

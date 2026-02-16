@@ -440,4 +440,73 @@ document.addEventListener('DOMContentLoaded', function () {
             renderTokens(e.target.value);
         });
     }
+
+    // ---------- REAL-TIME MARKET PRICES (Binance WebSocket) ----------
+    const priceElements = {
+        'BNBUSDT': {
+            price: document.getElementById('bnb-price'),
+            change: document.getElementById('bnb-change')
+        },
+        'ETHUSDT': {
+            price: document.getElementById('eth-price'),
+            change: document.getElementById('eth-change')
+        },
+        'BTCUSDT': {
+            price: document.getElementById('btc-price'),
+            change: document.getElementById('btc-change')
+        }
+    };
+
+    function initPriceWebSocket() {
+        const symbols = ['bnbusdt', 'ethusdt', 'btcusdt'];
+        const wsUrl = `wss://stream.binance.com:9443/ws/${symbols.map(s => `${s}@ticker`).join('/')}`;
+        const ws = new WebSocket(wsUrl);
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const symbol = data.s; // e.g., 'BTCUSDT'
+            const price = parseFloat(data.c).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const change = parseFloat(data.P).toFixed(2);
+
+            if (priceElements[symbol]) {
+                const priceEl = priceElements[symbol].price;
+                const changeEl = priceElements[symbol].change;
+
+                if (priceEl) {
+                    // Quick flash effect on price change
+                    const oldPrice = priceEl.innerText.replace('$', '').replace(',', '');
+                    const newPriceNum = parseFloat(data.c);
+                    const oldPriceNum = parseFloat(oldPrice);
+
+                    priceEl.innerText = `$${price}`;
+
+                    if (newPriceNum > oldPriceNum) {
+                        priceEl.style.color = '#02c076';
+                        setTimeout(() => priceEl.style.color = '', 500);
+                    } else if (newPriceNum < oldPriceNum) {
+                        priceEl.style.color = '#cf304a';
+                        setTimeout(() => priceEl.style.color = '', 500);
+                    }
+                }
+
+                if (changeEl) {
+                    const isPositive = parseFloat(change) >= 0;
+                    changeEl.innerText = `${isPositive ? '+' : ''}${change}%`;
+                    changeEl.className = isPositive ? 'positive' : 'negative';
+                }
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('Price WebSocket closed. Reconnecting...');
+            setTimeout(initPriceWebSocket, 3000);
+        };
+
+        ws.onerror = (err) => {
+            console.error('WebSocket Error:', err);
+            ws.close();
+        };
+    }
+
+    initPriceWebSocket();
 });
