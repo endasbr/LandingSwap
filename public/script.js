@@ -281,6 +281,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('loginBtn').addEventListener('click', () => openAuthModal('login'));
     document.getElementById('signupBtn').addEventListener('click', () => openAuthModal('signup'));
+
+    const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+    const mobileSignupBtn = document.getElementById('mobileSignupBtn');
+
+    if (mobileLoginBtn) {
+        mobileLoginBtn.addEventListener('click', () => {
+            openAuthModal('login');
+            closeMenu();
+        });
+    }
+
+    if (mobileSignupBtn) {
+        mobileSignupBtn.addEventListener('click', () => {
+            openAuthModal('signup');
+            closeMenu();
+        });
+    }
+
     document.getElementById('closeLoginModal').addEventListener('click', closeAuthModal);
     document.getElementById('closeSignupModal').addEventListener('click', closeAuthModal);
     document.getElementById('toSignup').addEventListener('click', (e) => { e.preventDefault(); openAuthModal('signup'); });
@@ -382,8 +400,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     connectBtn.addEventListener('click', handleConnectClick);
     if (mobileConnectBtn) {
-        mobileConnectBtn.addEventListener('click', handleConnectClick);
+        mobileConnectBtn.addEventListener('click', () => {
+            handleConnectClick();
+            closeMenu();
+        });
     }
+
+    // Close mobile menu when links are clicked
+    const mobileLinks = mobileMenu.querySelectorAll('a');
+    mobileLinks.forEach(link => {
+        link.addEventListener('click', closeMenu);
+    });
 
     closeWalletBtn.addEventListener('click', closeWalletModal);
 
